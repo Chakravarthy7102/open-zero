@@ -1,9 +1,7 @@
 import { availablePresets, registerPreset, transform } from "@babel/standalone";
-import {
-  type TailwindConfig,
-  createTailwindcss,
-} from "@mhsdesign/jit-browser-tailwindcss";
+import { createTailwindcss } from "@mhsdesign/jit-browser-tailwindcss";
 import tailwindConfig from "../../tailwind.config";
+import * as Server from "react-dom/server";
 
 registerPreset("tsx", {
   presets: [
@@ -74,6 +72,16 @@ export const getCompiledCodeBlobURL = async (code: string) => {
     [compiledComponent.code!, output.code!]
   );
 
+  const finalCompiledCode = new Blob([Server.renderToStaticMarkup(code)], {
+    type: "text/jsvascript",
+  });
+  const finalOutputCode = new Blob([Server.renderToStaticMarkup(output.code)], {
+    type: "text/jsvascript",
+  });
+
+  const finalCompiledCodeURL = URL.createObjectURL(finalCompiledCode);
+  const finalOutputCodeURL = URL.createObjectURL(finalOutputCode);
+
   const html = `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -83,10 +91,8 @@ export const getCompiledCodeBlobURL = async (code: string) => {
       <div id="root"></div>
       <script crossorigin defer src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
       <script crossorigin defer src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-      <script defer>window.addEventListener("DOMContentLoaded", () => {${[
-        compiledComponent.code,
-        output.code,
-      ].join("\n")}});</script>
+      <script crossorigin defer src="${finalCompiledCodeURL}"></script>
+      <script crossorigin defer src="${finalOutputCodeURL}"></script>
     </body>
   </html>
     `;
