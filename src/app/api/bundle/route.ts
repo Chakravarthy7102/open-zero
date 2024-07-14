@@ -1,7 +1,4 @@
 import { NextResponse } from "next/server";
-import * as esbuild from "esbuild";
-import react from "react";
-import * as dom from "react-dom";
 import esBuildCompileCode from "../../../../esbuild-complier";
 
 // const code = `import {
@@ -141,9 +138,12 @@ import esBuildCompileCode from "../../../../esbuild-complier";
 // );
 // `;
 
-export const code = `import Image from "next/image";
+export const code = `
+import Image from "next/image";
+ import { createRoot } from 'react-dom';
+import React, { useState } from "react";
 
-export default function Home() {
+export default function App() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
@@ -253,7 +253,9 @@ export default function Home() {
       </div>
     </main>
   );
-}`;
+}
+createRoot(document.querySelector("#root")).render(<App />)  
+`;
 
 export async function GET() {
   if (typeof code !== "string") {
@@ -263,91 +265,14 @@ export async function GET() {
     );
   }
 
-  // const result = await esbuild.transform(code, {
-  //   loader: "tsx",
-  //   format: "esm",
-  //   platform: "node",
-  // });
+  const outputFileHash = "open-zero-" + crypto.randomUUID();
+  const public_file_path = await esBuildCompileCode(code, outputFileHash);
 
-  // const build = await esbuild.build({
-  //   stdin: {
-  //     contents: result.code,
-  //     loader: "tsx",
-  //   },
-  //   format: "cjs",
-  //   outfile: "./Source.js",
-  //   bundle: true,
-  //   sourcemap: true,
-  //   minify: true,
-  //   write: true,
-  //   preserveSymlinks: true,
-  //   logLevel: "debug",
-  // });
-  const build = esBuildCompileCode(code);
   return NextResponse.json(
     {
-      code: build,
+      message: "Build file generated successfully!",
+      public_file_path,
     },
     { status: 200 }
   );
-
-  // const virtualModules = new VirtualModulesPlugin({
-  //   "input.tsx": tsxContent,
-  // });
-
-  // const webpackConfig: webpack.Configuration = {
-  //   ...defaultWebpackConfig,
-  //   plugins: [virtualModules],
-  // };
-
-  // try {
-  //   const compiler = webpack(webpackConfig);
-
-  //   compiler.compile((data) => []);
-
-  //   // const result = await new Promise<string>((resolve, reject) => {
-  //   //   compiler.run((err, stats) => {
-  //   //     if (err) {
-  //   //       reject(err);
-  //   //       return;
-  //   //     }
-
-  //   //     if (stats?.hasErrors()) {
-  //   //       reject(new Error(stats.toString()));
-  //   //       return;
-  //   //     }
-  //   //     compiler.outputFileSystem.readFile(
-  //   //       path.resolve(process.cwd(), "dist", "bundle.js"),
-  //   //       (err, data) => {
-  //   //         if (err) reject(err);
-  //   //         else resolve(data?.toString() || "");
-  //   //       }
-  //   //     );
-  //   //   });
-  //   // });
-
-  //   const htmlContent = `
-  //     <!DOCTYPE html>
-  //     <html>
-  //       <head>
-  //         <title>Bundled TSX</title>
-  //       </head>
-  //       <body>
-  //         <div id="root"></div>
-  //         <script>${console.log("hi")}</script>
-  //       </body>
-  //     </html>
-  //   `;
-
-  //   return new NextResponse(htmlContent, {
-  //     status: 200,
-  //     headers: { "Content-Type": "text/html" },
-  //   });
-  // } catch (error) {
-  //   console.error(error);
-  //   return NextResponse.json(
-  //     { message: "Error during bundling", error: (error as Error).message },
-  //     { status: 500 }
-  //   );
-  // }
 }
