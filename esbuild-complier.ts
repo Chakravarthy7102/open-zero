@@ -35,10 +35,15 @@ export default async function esBuildCompileCode(
     bundle: true,
     minify: true,
     write: true,
+    alias: {
+      "@/components/ui": "./src/components/ui",
+      "@/lib/utils": "./src/lib/utils",
+    },
     define: {
       "process.env.__NEXT_IMAGE_OPTS": "undefined",
     },
     platform: "browser",
+    logLevel: "debug",
   });
 
   return publicFilePath;
